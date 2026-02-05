@@ -9,7 +9,7 @@
 enum Dag {
 	MAN = 1,
 	TIR,
-	ONS,
+	ONS, 
 	TOR,
 	FRE,
 	LØR,
@@ -17,13 +17,13 @@ enum Dag {
 };
 
 struct Tidsintervaller {
-	char* startTid;
-	unsigned int intervall;
+	char* startTid[3];
+	unsigned int intervall[2];
 };
 
 struct Timetabell {
-	unsigned int ukedag;
-	struct Tidsintervaller tidsintervaller[3];
+	unsigned int ukedag[3];
+	struct Tidsintervaller tidsintervall[3];
 };
 
 struct Rutetabell {
@@ -63,6 +63,34 @@ void sjekkBussStatus(struct Rutetabell rutetabell[]) {
 
 }
 
+/* void setup(struct Tidsintervaller t[]) {
+//struct Tidsintervaller* t[2];
+t = malloc((3) * sizeof(struct Tidsintervaller));
+
+t = {
+		1,{"0650","2220","0020"},{15,30},
+		//{6,{"0750","0020"},{30,15}},
+		//{7,{"0850","0020"},{30}}
+	};
+
+	printf("Timetabell: %i\n",timetabell->tidsintervall[0].intervall[1]);
+
+}
+*/
+
+void error_exit(char *msg)  {
+	perror(msg);
+	exit(EXIT_FAILURE);
+}
+
+
+// TODO 
+void init_klokke() {
+
+
+}
+
+
 int main (int argc, char* argv[]) {
 
 	// Timetabeller: 
@@ -73,38 +101,35 @@ int main (int argc, char* argv[]) {
 	// Dag 7
 	// 0850 ~ 30 til 0020.
 
-	struct  Timetabell timetabell[] = {
-		{
-			1, 
-			{"0650", 15, "2220", 30, "0020"}
-		},
-		{
-			6,
-			{"0750", 30}
-		},
-		{
-			7,
-			{"0850", 30}
-		}
+	struct Tidsintervaller t[3] = {
+		{"0650","2220","0020",15,30},
+		{"0750","1020","0020",30,15},	
+		{"0850","0850","0020",30,30},	
 	};
 
-	printf("Timetabell: %s\n",timetabell->tidsintervaller[2].startTid);
+	printf("Tidsintervaller: %d \n",t[2].intervall[0]);
 
+	struct Timetabell t_t[3] = {
+		1,6,7,
+		t[0],t[1],t[2],
+	};
 
-	//printf("time_table_entries: %d\n",time_table_entries[1]);
+	printf("Timetabell: %i\n",t_t->tidsintervall[0].intervall[0]);
+	printf("Ukedag: %i\n",t_t->ukedag[2]);
 
 	unsigned int *kl = malloc(KL_SIFF*sizeof(unsigned int));
 
 	enum Dag a;
-	a = FRE;
-	printf("Dag 5: %d",a);
+	a = SØN;
+	printf("SØN : %d",a);
 
+	// TODO alternativt: 
+	// if (argc == 1 || argc >2)usage();
+	// else if (argv[1] <=0 || argv[1] >5)usage();
 	for (int i = 0; i < argc; i++) {
-		if (i==1) {
+		if (argc == 1 || argc >2) {
 			if (strlen(argv[i])!=KL_SIFF) {
-				printf("Argumentet skal ha 4 siffer %s\n",argv[i]);
-				//continue;
-				exit(EXIT_FAILURE);
+				error_exit("Argument 1 skal ha 4 siffere!");
 			} else {
 				char* arg = argv[i];
 				for (int j=0;j<strlen(arg);j++) {
