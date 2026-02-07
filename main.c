@@ -63,33 +63,31 @@ void sjekkBussStatus(struct Rutetabell rutetabell[]) {
 
 }
 
-/* void setup(struct Tidsintervaller t[]) {
-//struct Tidsintervaller* t[2];
-t = malloc((3) * sizeof(struct Tidsintervaller));
-
-t = {
-		1,{"0650","2220","0020"},{15,30},
-		//{6,{"0750","0020"},{30,15}},
-		//{7,{"0850","0020"},{30}}
-	};
-
-	printf("Timetabell: %i\n",timetabell->tidsintervall[0].intervall[1]);
-
-}
-*/
-
 void error_exit(char *msg)  {
 	perror(msg);
 	exit(EXIT_FAILURE);
 }
 
-
-// TODO 
-void init_klokke() {
-
-
+void * init_klokken() {
+	unsigned int *kl = malloc(KL_SIFF*sizeof(unsigned int));	
+	return kl;
 }
 
+void * start_dag(int i) {
+	int *dag = malloc(sizeof(int));
+	*dag = i;
+	return dag;
+}
+
+void loop_tid(unsigned int t[4]) {
+	for (int i=0;i<6;i++) {
+		t[3]++;
+		printf("Tid før: %d%d%d%d\n",t[0],t[1],t[2],t[3]);
+		telleTid(t);
+		printf("Tid etter: %d%d%d%d\n",t[0],t[1],t[2],t[3]);
+	} 
+
+}
 
 int main (int argc, char* argv[]) {
 
@@ -116,18 +114,23 @@ int main (int argc, char* argv[]) {
 
 	printf("Timetabell: %i\n",t_t->tidsintervall[0].intervall[0]);
 	printf("Ukedag: %i\n",t_t->ukedag[2]);
+	
+	unsigned int *kl = init_klokken();	
+	int *dag = start_dag(4);
+	if (kl==NULL||dag==NULL) error_exit("memory alloc failed");
 
-	unsigned int *kl = malloc(KL_SIFF*sizeof(unsigned int));
 
+	printf("Dag: %d\n",*dag);
 	enum Dag a;
 	a = SØN;
 	printf("SØN : %d",a);
+
 
 	// TODO alternativt: 
 	// if (argc == 1 || argc >2)usage();
 	// else if (argv[1] <=0 || argv[1] >5)usage();
 	for (int i = 0; i < argc; i++) {
-		if (argc == 1 || argc >2) {
+		if (i == 1) {
 			if (strlen(argv[i])!=KL_SIFF) {
 				error_exit("Argument 1 skal ha 4 siffere!");
 			} else {
@@ -138,20 +141,15 @@ int main (int argc, char* argv[]) {
 					printf("kl: %d\n",kl[j]);
 				}
 			}
-		}
-		printf("%s\n", argv[i]);
+		} else {printf("Kun 1 arg \n");}
+		printf("argument in: %s\n", argv[i]);
 	}
 
-	// loop tid
-	for (int i=0;i<6;i++) {
-		kl[3]++;
-		printf("Tid før: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
-		telleTid(kl);
-		printf("Tid etter: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
-	} 
+	loop_tid(kl);
 
 
 	free(kl);
+	free(dag);
 
 	return 0;
 }
