@@ -28,8 +28,9 @@ struct Timetabell {
 
 struct Rutetabell {
 	unsigned int buss;
-	enum Dag dag;
-	char* stopp;	
+	char* stopp;
+	struct Timetabell t_t;	
+	// TODO Retning->||<-
 };
 
 // TODO idiomatisk c; understreker i funksjonsnavn function_name()
@@ -60,7 +61,8 @@ void telleTid(int *kl) {
 
 // TODO check up mot busstabell
 void sjekkBussStatus(struct Rutetabell rutetabell[]) {
-
+	printf("Timetabell: %i\n",rutetabell->t_t.tidsintervall[0].intervall[0]);
+	printf("Ukedag: %i\n",rutetabell->t_t.ukedag[2]);
 }
 
 void error_exit(char *msg)  {
@@ -68,7 +70,7 @@ void error_exit(char *msg)  {
 	exit(EXIT_FAILURE);
 }
 
-void * init_klokken() {
+void * init_klokke() {
 	unsigned int *kl = malloc(KL_SIFF*sizeof(unsigned int));	
 	return kl;
 }
@@ -86,7 +88,6 @@ void loop_tid(unsigned int t[4]) {
 		telleTid(t);
 		printf("Tid etter: %d%d%d%d\n",t[0],t[1],t[2],t[3]);
 	} 
-
 }
 
 int main (int argc, char* argv[]) {
@@ -112,23 +113,23 @@ int main (int argc, char* argv[]) {
 		t[0],t[1],t[2],
 	};
 
-	printf("Timetabell: %i\n",t_t->tidsintervall[0].intervall[0]);
-	printf("Ukedag: %i\n",t_t->ukedag[2]);
-	
-	unsigned int *kl = init_klokken();	
+	struct Rutetabell rutetabell = {
+		66,
+		"Klosterheim",
+		t_t[0],
+	};
+
+	sjekkBussStatus(&rutetabell);
+
+	unsigned int *kl = init_klokke();
 	int *dag = start_dag(4);
 	if (kl==NULL||dag==NULL) error_exit("memory alloc failed");
-
 
 	printf("Dag: %d\n",*dag);
 	enum Dag a;
 	a = SØN;
 	printf("SØN : %d",a);
 
-
-	// TODO alternativt: 
-	// if (argc == 1 || argc >2)usage();
-	// else if (argv[1] <=0 || argv[1] >5)usage();
 	for (int i = 0; i < argc; i++) {
 		if (i == 1) {
 			if (strlen(argv[i])!=KL_SIFF) {
@@ -146,7 +147,6 @@ int main (int argc, char* argv[]) {
 	}
 
 	loop_tid(kl);
-
 
 	free(kl);
 	free(dag);
