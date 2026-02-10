@@ -33,9 +33,13 @@ struct Rutetabell {
 	// TODO Retning->||<-
 };
 
-// TODO idiomatisk c; understreker i funksjonsnavn function_name()
+// TODO idiomatisk c: understreker i funksjonsnavn function_name()
 
-// kontrollerer klokketid.
+/* oppdaterer numeriske verdier til klokketid i mente.
+ * dvs at f.eks at om siffer 3 kl[3] = 10 
+ * bærer verdien av sifferet over og inkrementerer siffer 2
+ * slik at når kl er inkrementert til 13310 blir kl skrudd til 1340.
+*/
 void telleTid(int *kl) {
 	if (kl[3]>=10) {
 		kl[2]++;
@@ -81,13 +85,65 @@ void * start_dag(int i) {
 	return dag;
 }
 
-void loop_tid(unsigned int t[4]) {
+// for testing på at kl inkrementerer slik den skal.
+void loop_tid(unsigned int* kl) {
 	for (int i=0;i<6;i++) {
-		t[3]++;
-		printf("Tid før: %d%d%d%d\n",t[0],t[1],t[2],t[3]);
-		telleTid(t);
-		printf("Tid etter: %d%d%d%d\n",t[0],t[1],t[2],t[3]);
+		kl[3]++;
+		printf("Tid før: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
+		telleTid(kl);
+		printf("Tid etter: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
 	} 
+}
+
+// TODO body for denne funksjonen
+void neste_buss(unsigned int* kl) {
+	
+}
+
+// Bygger array av timetabeller gitt oppstartstid og intervaller.
+void bygg_timetabeller() {
+	unsigned int intervall;
+	unsigned int n = 0;
+	int dag = MAN;
+	unsigned int *st_t = init_klokke();
+	unsigned int *sl_t = init_klokke();
+	char* start_tid = "0650";
+	char* slutt_tid = "2200";
+
+	intervall = 15;
+
+	// konvertere tid fra st_tid/sl_tid til kl
+	// -0 char er alternativ for atoi(), manipulerer HEX
+	for (int i=0;i<KL_SIFF;i++) {
+		st_t[i] = start_tid[i] - '0';
+		sl_t[i] = slutt_tid[i] - '0';
+	}
+	
+	while(st_t[0]<sl_t[0] || st_t[1]<sl_t[1]) {
+		n++;
+		st_t[3]++;
+		telleTid(st_t);
+		if (n==intervall) {
+			n = 0;
+			printf("Bussen går kl: %d%d%d%d\n",st_t[0],st_t[1],st_t[2],st_t[3]);
+		}
+	}	
+
+	// Konvertere fra kl format til char
+	int a[4] = {1,7,4,5};
+	int l;
+	int index = 0;
+	const int len_a = sizeof(a) / sizeof(*a);
+	char astr[len_a * 10];
+	for (int i=0;i<len_a;i++) {
+		index += sprintf( &astr[index], "%d", a[i]);
+	}
+	printf("ASTR %s\n", astr);
+		
+	loop_tid(st_t);
+
+	free(st_t);
+	free(sl_t);
 }
 
 int main (int argc, char* argv[]) {
@@ -147,6 +203,8 @@ int main (int argc, char* argv[]) {
 	}
 
 	loop_tid(kl);
+
+	bygg_timetabeller();
 
 	free(kl);
 	free(dag);
