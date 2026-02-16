@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define KVARTER 15
 #define HALVTIME 30
@@ -39,7 +40,7 @@ struct Rutetabell {
  * dvs at f.eks at om siffer 3 kl[3] = 10 
  * bærer verdien av sifferet over og inkrementerer siffer 2
  * slik at når kl er inkrementert til 13310 blir kl skrudd til 1340.
-*/
+ */
 void telleTid(int *kl) {
 	if (kl[3]>=10) {
 		kl[2]++;
@@ -63,11 +64,6 @@ void telleTid(int *kl) {
 	}
 }
 
-// TODO check up mot busstabell
-void sjekkBussStatus(struct Rutetabell rutetabell[]) {
-	printf("Timetabell: %i\n",rutetabell->t_t.tidsintervall[0].intervall[0]);
-	printf("Ukedag: %i\n",rutetabell->t_t.ukedag[2]);
-}
 
 void error_exit(char *msg)  {
 	perror(msg);
@@ -86,18 +82,18 @@ void * start_dag(int i) {
 }
 
 // for testing på at kl inkrementerer slik den skal.
-void loop_tid(unsigned int* kl) {
-	for (int i=0;i<6;i++) {
+void loop_tid(unsigned int* kl, int i) {
+	for (int j=0;j<i;j++) {
 		kl[3]++;
-		printf("Tid før: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
+		//printf("Tid før: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
 		telleTid(kl);
-		printf("Tid etter: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
+		//printf("Tid etter: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
 	} 
 }
 
 // TODO body for denne funksjonen
-void neste_buss(unsigned int* kl) {
-	
+void neste_buss(unsigned int* kl, int dag) {
+
 }
 
 // Bygger array av timetabeller gitt oppstartstid og intervaller.
@@ -118,7 +114,7 @@ void bygg_timetabeller() {
 		st_t[i] = start_tid[i] - '0';
 		sl_t[i] = slutt_tid[i] - '0';
 	}
-	
+
 	while(st_t[0]<sl_t[0] || st_t[1]<sl_t[1]) {
 		n++;
 		st_t[3]++;
@@ -139,11 +135,77 @@ void bygg_timetabeller() {
 		index += sprintf( &astr[index], "%d", a[i]);
 	}
 	printf("ASTR %s\n", astr);
-		
-	loop_tid(st_t);
+
+	//loop_tid(st_t);
 
 	free(st_t);
 	free(sl_t);
+}
+
+// TODO check for dag, for kveldstid.
+int sjekkBussStatus(struct Rutetabell rutetabell[], unsigned int* kl, int* dag) {
+	unsigned int n = 0;
+	unsigned int intervall;
+
+	char* start_tid;
+	char* slutt_tid;
+	/*
+	printf("Timetabell: %i\n",rutetabell->t_t.tidsintervall[0].intervall[0]);
+	printf("Start tid: %s\n",rutetabell->t_t.tidsintervall[0].startTid[0]);
+	printf("Slutt tid: %s\n",rutetabell->t_t.tidsintervall[0].startTid[1]);
+	printf("Ukedag: %i\n",rutetabell->t_t.ukedag[2]);
+	printf("Dag: %d\n",*dag);
+	*/
+
+
+	unsigned int *st_t = init_klokke();
+	unsigned int *sl_t = init_klokke();
+
+	start_tid = rutetabell->t_t.tidsintervall[0].startTid[0];
+	slutt_tid = rutetabell->t_t.tidsintervall[0].startTid[1];
+
+	intervall = rutetabell->t_t.tidsintervall[0].intervall[0];
+
+	// konvertere tid fra st_tid/sl_tid til kl
+	// -0 char er alternativ for atoi(), manipulerer HEX
+	for (int i=0;i<KL_SIFF;i++) {
+		st_t[i] = start_tid[i] - '0';
+		sl_t[i] = slutt_tid[i] - '0';
+	}
+
+	n = intervall;	
+	while(st_t[0]<sl_t[0] || st_t[1]<sl_t[1]) {
+		n--;
+		st_t[3]++;
+		telleTid(st_t);
+
+		if(st_t[0]>=kl[0] && st_t[1]>=kl[1] && st_t[2]>=kl[2] && st_t[3]>=kl[3]) {	
+			/*if (st_t[3]==kl[3]) {
+				//nedtelling = 		
+				printf("klokken er %d%d%d%d, bussen går om %i min, st: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3], intervall, st_t[0],st_t[1],st_t[2],st_t[3]);
+				break;
+			} */
+			//unsigned int res = 0;
+			//if (st_t[3]>=kl[3]) {
+			//	res = st_t[3]-kl[3];
+			//} else res = 10-kl[3];
+			//res = (intervall-kl[3]);
+			//printf("klokken er %d%d%d%d, bussen går om %i min, %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3], n, st_t[0],st_t[1],st_t[2],st_t[3]);
+			//printf("n: %i\n",n);
+			break;
+		}
+
+		if (n==0) {
+			n = intervall;
+		}
+	}
+
+	//printf("kl: %d%d%d%d\n",kl[0],kl[1],kl[2],kl[3]);
+
+	free(st_t);
+	free(sl_t);
+
+	return n;
 }
 
 int main (int argc, char* argv[]) {
@@ -175,7 +237,6 @@ int main (int argc, char* argv[]) {
 		t_t[0],
 	};
 
-	sjekkBussStatus(&rutetabell);
 
 	unsigned int *kl = init_klokke();
 	int *dag = start_dag(4);
@@ -202,9 +263,17 @@ int main (int argc, char* argv[]) {
 		printf("argument in: %s\n", argv[i]);
 	}
 
-	loop_tid(kl);
+	loop_tid(kl, 5);
 
 	bygg_timetabeller();
+
+	int ank;
+	for(int i=0;i<30;i++) {
+		ank = sjekkBussStatus(&rutetabell, kl, dag);
+		printf("klokken er %d%d%d%d, bussen går om %i min\n",kl[0],kl[1],kl[2],kl[3], ank);
+		sleep(1);
+		loop_tid(kl, 1);
+	}
 
 	free(kl);
 	free(dag);
